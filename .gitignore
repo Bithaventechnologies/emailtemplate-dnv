@@ -3,7 +3,7 @@ dist/
 build/
 .next/
 .turbo/
-storage/
+/apps/api/storage/
 *.log
 .env
 .env.local
