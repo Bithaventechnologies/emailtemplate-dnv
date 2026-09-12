@@ -17,13 +17,7 @@
     "noImplicitAny": true,
     "strictBindCallApply": true,
     "noFallthroughCasesInSwitch": true,
-    "isolatedModules": true,
-    "paths": {
-      "@email-platform/types": ["../../packages/types/src"],
-      "@email-platform/types/*": ["../../packages/types/src/*"],
-      "@email-platform/email": ["../../packages/email/src"],
-      "@email-platform/email/*": ["../../packages/email/src/*"]
-    }
+    "isolatedModules": true
   },
   "include": ["src/**/*.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist"]
