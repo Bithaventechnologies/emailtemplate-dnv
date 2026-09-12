@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  border-color: theme("colors.ink.100");
+}
+
+body {
+  background-color: theme("colors.canvas");
+  color: theme("colors.ink.900");
+}
+
+::selection {
+  background-color: theme("colors.accent.200");
+}
+
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  outline: 2px solid theme("colors.accent.500");
+  outline-offset: 2px;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #eeeef0 25%, #f5f5f7 37%, #eeeef0 63%);
+  background-size: 800px 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,22 @@
+// Central query key factory so invalidation stays consistent across the app.
+export const queryKeys = {
+  me: () => ["auth", "me"] as const,
+  categories: (includeInactive?: boolean) => ["categories", { includeInactive: !!includeInactive }] as const,
+  category: (id: string) => ["categories", id] as const,
+  templates: (categoryId?: string, status?: string) => ["templates", { categoryId, status }] as const,
+  template: (id: string) => ["templates", id] as const,
+  templateVersions: (id: string) => ["templates", id, "versions"] as const,
+  recipients: (params: Record<string, unknown>) => ["recipients", params] as const,
+  recipient: (id: string) => ["recipients", id] as const,
+  recipientLists: () => ["recipients", "lists"] as const,
+  recipientList: (id: string) => ["recipients", "lists", id] as const,
+  campaigns: (status?: string) => ["campaigns", { status }] as const,
+  campaign: (id: string, recipientStatus?: string) => ["campaigns", id, { recipientStatus }] as const,
+  branding: () => ["branding"] as const,
+  signatures: () => ["signatures"] as const,
+  signature: (id: string) => ["signatures", id] as const,
+  dashboard: (dateFrom?: string, dateTo?: string) => ["analytics", "dashboard", { dateFrom, dateTo }] as const,
+  campaignAnalytics: (id: string) => ["analytics", "campaigns", id] as const,
+  failedEmails: (params: Record<string, unknown>) => ["failed-emails", params] as const,
+  auditLogs: (params: Record<string, unknown>) => ["audit-logs", params] as const,
+};
