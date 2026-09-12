@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectQueue } from "@nestjs/bullmq";
 import type { Queue } from "bullmq";
 import { ConfigService } from "@nestjs/config";
-import type { Campaign, CampaignRecipient } from "@prisma/client";
+import type { Campaign } from "@prisma/client";
 import type { EmailDocument } from "@email-platform/types";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
@@ -55,18 +55,54 @@ export class CampaignsService {
     organizationId: string,
     id: string,
     statusFilter?: string,
-  ): Promise<{ campaign: Campaign; recipients: Array<CampaignRecipient & { recipient: { email: string } }> }> {
+  ): Promise<{
+    campaign: Campaign;
+    recipients: Array<{
+      id: string;
+      recipientId: string;
+      email: string;
+      status: string;
+      failureReason: string | null;
+      sentAt: Date | null;
+      deliveredAt: Date | null;
+      openCount: number;
+      clickCount: number;
+    }>;
+    statusCounts: Record<string, number>;
+    eventCounts: Record<string, number>;
+  }> {
     const campaign = await this.getOne(organizationId, id);
-    const recipients = await this.prisma.campaignRecipient.findMany({
+    const campaignRecipients = await this.prisma.campaignRecipient.findMany({
       where: {
         campaignId: id,
-        ...(statusFilter
-          ? { emailMessage: { status: statusFilter as never } }
-          : {}),
+        ...(statusFilter ? { emailMessage: { status: statusFilter as never } } : {}),
       },
-      include: { recipient: { select: { email: true } } },
+      include: { recipient: { select: { email: true } }, emailMessage: true },
     });
-    return { campaign, recipients };
+
+    const recipients = campaignRecipients.map((cr) => ({
+      id: cr.id,
+      recipientId: cr.recipientId,
+      email: cr.recipient.email,
+      status: cr.emailMessage?.status ?? "QUEUED",
+      failureReason: cr.emailMessage?.failureReason ?? null,
+      sentAt: cr.emailMessage?.sentAt ?? null,
+      deliveredAt: cr.emailMessage?.deliveredAt ?? null,
+      openCount: cr.emailMessage?.openCount ?? 0,
+      clickCount: cr.emailMessage?.clickCount ?? 0,
+    }));
+
+    const statusCounts: Record<string, number> = {};
+    let opened = 0;
+    let clicked = 0;
+    for (const r of recipients) {
+      statusCounts[r.status] = (statusCounts[r.status] ?? 0) + 1;
+      if (r.openCount > 0) opened += 1;
+      if (r.clickCount > 0) clicked += 1;
+    }
+    const eventCounts: Record<string, number> = { opened, clicked };
+
+    return { campaign, recipients, statusCounts, eventCounts };
   }
 
   // Creates a DRAFT campaign: snapshots the template's *current* version,

@@ -87,9 +87,11 @@ export class EmailSendProcessor extends WorkerHost {
           sentAt: new Date(),
         },
       });
+      if (message.campaignId) await this.maybeCompleteCampaign(message.campaignId);
     } catch (error) {
       if (error instanceof SendEmailError && error.classification === "PERMANENT") {
         await this.markPermanentFailure(emailMessageId, error.message, "PERMANENT");
+        if (message.campaignId) await this.maybeCompleteCampaign(message.campaignId);
         // Do not rethrow — a PERMANENT failure must not be retried by BullMQ.
         return;
       }
@@ -110,6 +112,33 @@ export class EmailSendProcessor extends WorkerHost {
       // TRANSIENT/UNKNOWN failures. PERMANENT failures returned above instead.
       throw error;
     }
+  }
+
+  // Marks the parent Campaign COMPLETED (or PARTIALLY_FAILED if any message
+  // ended up FAILED/BOUNCED) once every one of its EmailMessages has left the
+  // in-flight QUEUED/PROCESSING states. Called after every terminal outcome
+  // rather than tracked via a counter, since concurrent workers make a
+  // shared counter race-prone — this recheck is cheap and idempotent.
+  private async maybeCompleteCampaign(campaignId: string): Promise<void> {
+    const campaign = await this.prisma.campaign.findUnique({ where: { id: campaignId } });
+    if (!campaign || campaign.status === "COMPLETED" || campaign.status === "PARTIALLY_FAILED") return;
+
+    const inFlight = await this.prisma.emailMessage.count({
+      where: { campaignId, status: { in: ["QUEUED", "PROCESSING"] } },
+    });
+    if (inFlight > 0) return;
+
+    const failedCount = await this.prisma.emailMessage.count({
+      where: { campaignId, status: { in: ["FAILED", "BOUNCED"] } },
+    });
+
+    await this.prisma.campaign.update({
+      where: { id: campaignId },
+      data: {
+        status: failedCount > 0 ? "PARTIALLY_FAILED" : "COMPLETED",
+        completedAt: new Date(),
+      },
+    });
   }
 
   private async markPermanentFailure(

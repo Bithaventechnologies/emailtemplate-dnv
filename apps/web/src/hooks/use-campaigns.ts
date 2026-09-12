@@ -36,6 +36,7 @@ export interface CampaignRecipientRow {
 
 export interface CampaignDetail {
   campaign: CampaignDto;
+  recipients: CampaignRecipientRow[];
   statusCounts?: Record<string, number>;
   eventCounts?: Record<string, number>;
 }

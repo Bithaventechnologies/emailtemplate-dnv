@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useCampaignDetail, useCancelCampaign } from "@/hooks/use-campaigns";
+import { getBulkSendConfirmationTier } from "@email-platform/types";
+import { useCampaignDetail, useCancelCampaign, useSendCampaign, generateIdempotencyKey } from "@/hooks/use-campaigns";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/input";
+import { Select, Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -21,8 +22,11 @@ export default function CampaignDetailPage() {
   const [recipientStatus, setRecipientStatus] = useState("");
   const { data, isLoading, isError } = useCampaignDetail(params.id, recipientStatus || undefined);
   const cancelCampaign = useCancelCampaign(params.id);
+  const sendCampaign = useSendCampaign(params.id);
   const confirm = useConfirm();
   const { toast } = useToast();
+  const [idempotencyKey] = useState(() => generateIdempotencyKey());
+  const [typedCountConfirmation, setTypedCountConfirmation] = useState("");
 
   async function handleCancel() {
     const ok = await confirm({
@@ -37,6 +41,35 @@ export default function CampaignDetailPage() {
       toast({ title: "Campaign cancelled", variant: "success" });
     } catch (error) {
       toast({ title: "Failed to cancel campaign", description: getErrorMessage(error), variant: "error" });
+    }
+  }
+
+  async function handleSend(totalRecipients: number) {
+    const tier = getBulkSendConfirmationTier(totalRecipients);
+
+    if (tier === "explicit") {
+      if (typedCountConfirmation.trim() !== String(totalRecipients)) {
+        toast({ title: "Type the exact recipient count to confirm", variant: "error" });
+        return;
+      }
+    } else {
+      const ok = await confirm({
+        title: `Send to ${totalRecipients} recipient${totalRecipients === 1 ? "" : "s"}?`,
+        description:
+          tier === "enhanced"
+            ? "This is a larger send. Double-check your template and recipient list before continuing."
+            : "This will queue emails for immediate sending.",
+        confirmLabel: "Send campaign",
+        destructive: tier === "enhanced",
+      });
+      if (!ok) return;
+    }
+
+    try {
+      await sendCampaign.mutateAsync({ idempotencyKey, confirmedRecipientCount: totalRecipients });
+      toast({ title: "Campaign is sending", variant: "success" });
+    } catch (error) {
+      toast({ title: "Failed to send campaign", description: getErrorMessage(error), variant: "error" });
     }
   }
 
@@ -58,6 +91,7 @@ export default function CampaignDetailPage() {
   }
 
   const { campaign, statusCounts, eventCounts } = data;
+  const sendTier = getBulkSendConfirmationTier(campaign.totalRecipients);
 
   return (
     <div className="space-y-6">
@@ -69,7 +103,25 @@ export default function CampaignDetailPage() {
             <span className="text-sm text-ink-500">{campaign.totalRecipients} recipients</span>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {campaign.status === "DRAFT" && sendTier === "explicit" ? (
+            <Input
+              aria-label={`Type ${campaign.totalRecipients} to confirm`}
+              placeholder={`Type "${campaign.totalRecipients}" to confirm`}
+              value={typedCountConfirmation}
+              onChange={(e) => setTypedCountConfirmation(e.target.value)}
+              className="w-48"
+            />
+          ) : null}
+          {campaign.status === "DRAFT" ? (
+            <Button
+              onClick={() => handleSend(campaign.totalRecipients)}
+              loading={sendCampaign.isPending}
+              disabled={sendTier === "explicit" && typedCountConfirmation.trim() !== String(campaign.totalRecipients)}
+            >
+              Send campaign
+            </Button>
+          ) : null}
           <Button variant="outline" onClick={() => router.push("/campaigns")}>
             Back to campaigns
           </Button>
@@ -120,11 +172,37 @@ export default function CampaignDetailPage() {
             </Select>
           }
         />
-        <CardBody>
-          <p className="text-sm text-ink-500">
-            Detailed per-recipient delivery rows are available via the API and will render here once campaign sending
-            data is populated for this campaign.
-          </p>
+        <CardBody className="p-0">
+          {data.recipients.length === 0 ? (
+            <p className="p-6 text-sm text-ink-500">No recipients match this filter.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-ink-100 text-left text-xs font-medium uppercase text-ink-400">
+                  <th className="px-4 py-2">Email</th>
+                  <th className="px-4 py-2">Status</th>
+                  <th className="px-4 py-2">Sent</th>
+                  <th className="px-4 py-2">Opens</th>
+                  <th className="px-4 py-2">Clicks</th>
+                  <th className="px-4 py-2">Failure reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.recipients.map((r) => (
+                  <tr key={r.id} className="border-b border-ink-50 last:border-0">
+                    <td className="px-4 py-2 text-ink-900">{r.email}</td>
+                    <td className="px-4 py-2">
+                      <StatusBadge status={r.status} />
+                    </td>
+                    <td className="px-4 py-2 text-ink-500">{r.sentAt ? new Date(r.sentAt).toLocaleString() : "—"}</td>
+                    <td className="px-4 py-2 text-ink-500">{r.openCount}</td>
+                    <td className="px-4 py-2 text-ink-500">{r.clickCount}</td>
+                    <td className="px-4 py-2 text-ink-500">{r.failureReason ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </CardBody>
       </Card>
     </div>

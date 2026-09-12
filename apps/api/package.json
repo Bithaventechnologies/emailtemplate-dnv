@@ -5,8 +5,8 @@
   "main": "dist/apps/api/src/main.js",
   "scripts": {
     "build": "nest build",
-    "dev": "ts-node -r tsconfig-paths/register src/main.ts",
-    "start": "node dist/apps/api/src/main.js",
+    "dev": "ts-node --files -r tsconfig-paths/register src/main.ts",
+    "start": "ts-node --files -r tsconfig-paths/register src/main.ts",
     "lint": "eslint src --ext .ts",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -38,6 +38,9 @@
     "resend": "^4.0.1",
     "rxjs": "^7.8.1",
     "svix": "^1.45.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.6.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -58,9 +61,6 @@
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
-    "ts-loader": "^9.5.1",
-    "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.6.3"
+    "ts-loader": "^9.5.1"
   }
 }

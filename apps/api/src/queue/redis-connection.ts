@@ -14,5 +14,6 @@ export function buildRedisConnectionOptions(redisUrl: string): RedisOptions {
   if (url.username) options.username = url.username;
   const dbPath = url.pathname.replace(/^\//, "");
   if (dbPath) options.db = Number(dbPath);
+  if (url.protocol === "rediss:") options.tls = {};
   return options;
 }
