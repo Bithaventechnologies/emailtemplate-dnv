@@ -25,6 +25,6 @@
       "@email-platform/email/*": ["../../packages/email/src/*"]
     }
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "../../packages/email/src/mjml.d.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

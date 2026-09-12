@@ -4,9 +4,10 @@ import { TemplatesController } from "./templates.controller";
 import { BrandingModule } from "../branding/branding.module";
 import { SignaturesModule } from "../signatures/signatures.module";
 import { ResendModule } from "../resend/resend.module";
+import { AuditModule } from "../audit/audit.module";
 
 @Module({
-  imports: [BrandingModule, SignaturesModule, ResendModule],
+  imports: [BrandingModule, SignaturesModule, ResendModule, AuditModule],
   providers: [TemplatesService],
   controllers: [TemplatesController],
   exports: [TemplatesService],
