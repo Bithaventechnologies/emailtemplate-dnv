@@ -25,7 +25,7 @@ export const envSchema = z.object({
   STORAGE_ACCESS_KEY: z.string().optional().default(""),
   STORAGE_SECRET_KEY: z.string().optional().default(""),
 
-  API_PORT: z.coerce.number().int().positive().default(4000),
+  API_PORT: z.coerce.number().int().positive().optional(),
   API_CORS_ORIGIN: z.string().min(1),
 
   LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(5),

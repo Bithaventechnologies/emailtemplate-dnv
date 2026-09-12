@@ -51,7 +51,7 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());
 
-  const port = config.get<number>("API_PORT", 4000);
+  const port = config.get<number>("API_PORT") ?? (process.env.PORT ? Number(process.env.PORT) : 4000);
   await app.listen(port);
   // eslint-disable-next-line no-console
   console.log(`API listening on port ${port}`);
