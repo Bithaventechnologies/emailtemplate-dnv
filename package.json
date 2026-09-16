@@ -9,7 +9,7 @@
     "dev": "pnpm --parallel --filter ./apps/* run dev",
     "dev:web": "pnpm --filter web run dev",
     "dev:api": "pnpm --filter api run dev",
-    "build": "pnpm --filter \"@email-platform/types\" --filter \"@email-platform/email\" --filter \"./apps/*\" run build",
+   "build": "corepack pnpm --filter \"@email-platform/types\" --filter \"@email-platform/email\" --filter \"./apps/*\" run build",
     "lint": "pnpm -r run lint",
     "test": "pnpm -r run test",
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
