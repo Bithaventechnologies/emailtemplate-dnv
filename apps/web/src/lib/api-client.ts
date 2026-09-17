@@ -1,6 +1,8 @@
 import type { ApiError, ApiResponse } from "@email-platform/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+// This is the sole browser-visible backend origin. It is supplied by the
+// deployment environment; individual requests only provide route paths.
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const CSRF_COOKIE_NAME = "csrf_token";
 const CSRF_HEADER = "x-csrf-token";
 
@@ -34,6 +36,9 @@ export interface RequestOptions {
 }
 
 function buildUrl(path: string, query?: RequestOptions["query"]): string {
+  if (!API_URL) {
+    throw new Error("NEXT_PUBLIC_API_URL must be configured before making API requests.");
+  }
   const url = new URL(path.replace(/^\//, ""), API_URL.endsWith("/") ? API_URL : `${API_URL}/`);
   if (query) {
     for (const [key, value] of Object.entries(query)) {
