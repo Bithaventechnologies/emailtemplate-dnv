@@ -13,12 +13,14 @@ import { apiClient } from "@/lib/api-client";
 import { getErrorMessage } from "@/hooks/use-api-error";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -70,13 +72,26 @@ export default function LoginPage() {
                 Forgot password?
               </Link>
             </div>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              error={errors.password?.message}
-              {...register("password")}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                error={errors.password?.message}
+                className="pr-10"
+                {...register("password")}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="focus-ring absolute inset-y-0 right-0 flex items-center px-3 text-ink-400 hover:text-ink-600"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
             <FieldError message={errors.password?.message} />
           </div>
 
