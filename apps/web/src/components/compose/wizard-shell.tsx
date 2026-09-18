@@ -1,13 +1,9 @@
 import { cn } from "@/lib/cn";
 
 export const WIZARD_STEPS = [
-  "Category",
-  "Template",
   "Recipients",
-  "Variables",
-  "Branding",
   "Preview",
-  "Confirm",
+  "Send",
 ] as const;
 
 export function WizardStepper({ currentStep }: { currentStep: number }) {
