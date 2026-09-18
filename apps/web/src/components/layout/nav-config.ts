@@ -14,8 +14,8 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     label: "Email",
     children: [
-      { label: "Templates", href: "/templates" },
-      { label: "Compose", href: "/compose" },
+      { label: "Email Templates", href: "/templates" },
+      { label: "Send Email", href: "/compose" },
       { label: "Campaigns", href: "/campaigns" },
       { label: "Sent", href: "/campaigns?tab=sent" },
       { label: "Failed", href: "/failed-emails" },

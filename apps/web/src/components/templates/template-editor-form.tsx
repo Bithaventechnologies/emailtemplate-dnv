@@ -219,9 +219,10 @@ export function TemplateEditorForm({ existing }: { existing?: EmailTemplateDto }
           </Button>
           {existing ? (
             <Button variant="outline" onClick={handleServerPreview} loading={previewMutation.isPending}>
-              Server preview
+              Preview email
             </Button>
           ) : null}
+          <Button variant="ghost" onClick={() => router.push("/templates")}>Cancel</Button>
         </div>
       </div>
 

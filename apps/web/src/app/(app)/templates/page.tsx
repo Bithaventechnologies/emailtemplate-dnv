@@ -71,11 +71,11 @@ export default function TemplatesPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-ink-900">Templates</h1>
-          <p className="mt-1 text-sm text-ink-500">Manage reusable branded email templates.</p>
+          <h1 className="text-xl font-semibold text-ink-900">Email templates</h1>
+          <p className="mt-1 text-sm text-ink-500">Choose a template to edit or send, or create a new one.</p>
         </div>
         <Link href="/templates/new">
-          <Button>New template</Button>
+          <Button>+ Create template</Button>
         </Link>
       </div>
 
@@ -102,7 +102,7 @@ export default function TemplatesPage() {
         ) : !templates || templates.length === 0 ? (
           <EmptyState
             title="No templates yet"
-            description="Create your first branded email template to use in campaigns."
+            description="Create your first branded email template, then send it when you are ready."
             action={
               <Link href="/templates/new">
                 <Button>Create template</Button>
@@ -139,14 +139,14 @@ export default function TemplatesPage() {
                     </td>
                     <td className="px-5 py-3 text-ink-500">{new Date(t.updatedAt).toLocaleDateString()}</td>
                     <td className="px-5 py-3 text-right">
-                      <Menu
-                        trigger={<DotsIcon />}
-                        items={[
-                          { label: "Edit", onClick: () => router.push(`/templates/${t.id}`) },
+                      <div className="flex items-center justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => router.push(`/templates/${t.id}`)}>Edit</Button>
+                        <Button size="sm" disabled={t.status !== "ACTIVE"} onClick={() => router.push(`/compose?templateId=${t.id}`)}>Use template</Button>
+                        <Menu trigger={<DotsIcon />} items={[
                           { label: "Duplicate", onClick: () => handleDuplicate(t) },
                           { label: "Delete", onClick: () => handleDelete(t), danger: true },
-                        ]}
-                      />
+                        ]} />
+                      </div>
                     </td>
                   </tr>
                 ))}
